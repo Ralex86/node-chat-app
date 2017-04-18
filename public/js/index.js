@@ -8,10 +8,10 @@ socket.on('connect', function(){ // safari support, arrow ES6 function not suppo
   //   text: 'hej nusmefisk'
   // });
 
-  socket.emit('createMessage', {
-    from: 'Alex',
-    text: 'yup thats work for me'
-  })
+  // socket.emit('createMessage', {
+  //   from: 'Alex',
+  //   text: 'yup thats work for me'
+  // })
 
 });
 
