@@ -36,10 +36,13 @@ io.on('connection', (socket) => {
   //   createdAt: new Date().getTime()
   // })
 
-  socket.on('createMessage', (message) => {
+  socket.on('createMessage', (message, callback) => {
     console.log('create message', message);
     // send a message to every connections
     io.emit('newMessage', generateMessage(message.from, message.text));
+
+    // acknowledgement callback send to the client
+    callback('This is from the server');
 
     // broadcasting to other users..
     // socket.broadcast.emit('newMessage', {
