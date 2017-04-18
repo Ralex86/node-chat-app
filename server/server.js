@@ -21,7 +21,7 @@ io.on('connection', (socket) => {
   console.log('new user connected');
 
   // socket.emit from admin text welcome to the chat app
-  socket.emit('newMessage', generateMessage('Admin', 'Welcome to the chat app'));
+  socket.emit('newMessage', generateMessage('Admin', 'Bienvenue sur pantah chat'));
   // socket.emit('newMessage', {
   //   from: 'Admin',
   //   text: 'Welcome to the chat app',
@@ -29,7 +29,7 @@ io.on('connection', (socket) => {
   // });
 
   // socket.broadcast.emit from Admin text New user joined
-  socket.broadcast.emit('newMessage', generateMessage('Admin', 'New user joined'));
+  socket.broadcast.emit('newMessage', generateMessage('Admin', 'Nouvel utilisateur connecté'));
   // socket.broadcast.emit('newMessage', {
   //   from: 'Admin',
   //   text: 'New user joined',
