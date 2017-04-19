@@ -42,7 +42,7 @@ io.on('connection', (socket) => {
     io.emit('newMessage', generateMessage(message.from, message.text));
 
     // acknowledgement callback send to the client
-    callback('This is from the server');
+    callback();
 
     // broadcasting to other users..
     // socket.broadcast.emit('newMessage', {
