@@ -7,11 +7,14 @@ const express = require('express');
 const socketIO = require('socket.io');
 
 const {generateMessage, generateLocationMessage} = require('./utils/message');
+const {isRealString} = require('./utils/validation');
+const {Users} = require('./utils/users');
 const publicPath = path.join(__dirname, '../public');
 const port = process.env.PORT || 3000;
 var app = express();
 var server = http.createServer(app);
 var io = socketIO(server);
+var users = new Users();
 
 //static express middleware
 
@@ -21,7 +24,7 @@ io.on('connection', (socket) => {
   console.log('new user connected');
 
   // socket.emit from admin text welcome to the chat app
-  socket.emit('newMessage', generateMessage('Admin', 'Bienvenue sur pantah chat'));
+  //socket.emit('newMessage', generateMessage('Admin', 'Bienvenue sur pantah chat'));
   // socket.emit('newMessage', {
   //   from: 'Admin',
   //   text: 'Welcome to the chat app',
@@ -29,12 +32,37 @@ io.on('connection', (socket) => {
   // });
 
   // socket.broadcast.emit from Admin text New user joined
-  socket.broadcast.emit('newMessage', generateMessage('Admin', 'Nouvel utilisateur connecté'));
+  // socket.broadcast.emit('newMessage', generateMessage('Admin', 'Nouvel utilisateur connecté'));
   // socket.broadcast.emit('newMessage', {
   //   from: 'Admin',
   //   text: 'New user joined',
   //   createdAt: new Date().getTime()
   // })
+
+  // listener for joining a room
+  socket.on('join', (params, callback) => {
+    if (!isRealString(params.name) || !isRealString(params.room)){
+      return callback('Nom et salle discussion doivent être spécifiés'); // return pour sortir de la fonction si données invalides
+    }
+
+    // join a room
+    socket.join(params.room);
+
+    users.removeUser(socket.id); // prevent les users de se connecter a plusieur room
+
+    // update user list
+    users.addUser(socket.id, params.name, params.room);
+
+    io.to(params.room).emit('updateUserList', users.getUserList(params.room));
+
+    // io.emit -> io.to(params.room).emit
+    // socket.broadcast.emit -> socket.boradcast to(params.room).emit
+    // socket.emit
+
+    socket.emit('newMessage', generateMessage('Admin', 'Bienvenue sur pantah chat'));
+    socket.broadcast.to(params.room).emit('newMessage', generateMessage('Admin', `${params.name} a rejoint la salle`));
+    callback();
+  });
 
   socket.on('createMessage', (message, callback) => {
     console.log('create message', message);
@@ -57,10 +85,16 @@ io.on('connection', (socket) => {
     io.emit('newLocationMessage', generateLocationMessage('Admin', coords.latitude,coords.longitude));
   });
 
-  socket.on('disconnect', function(){
+  socket.on('disconnect', () => {
+    var user = users.removeUser(socket.id);
+
+    if (user) {
+      io.to(user.room).emit('updateUserList', users.getUserList(user.room));
+      io.to(user.room).emit('newMessage', generateMessage('Admin', `${user.name} a quitté la salle`));
+    }
     console.log('user was disconnected')
   });
-})
+});
 
 server.listen(port, () => {
   console.log(`Server is up on port : ${port}`);

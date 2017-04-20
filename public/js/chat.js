@@ -20,6 +20,20 @@ function scrollToBottom() {
 socket.on('connect', function(){ // safari support, arrow ES6 function not supported yet
   console.log('Connected to server');
 
+  // joining a room, emit an event to join a room with deparam
+  var params = jQuery.deparam(window.location.search);
+  console.log(params);
+
+  socket.emit('join', params, function (err) {
+      if (err){
+        alert(err);
+        window.location.href ='/';
+      } else {
+        console.log('Pas derreurs');
+      }
+
+  });
+
   // socket.emit('createEmail', {
   //   to: 'kristofer@lflfl',
   //   text: 'hej nusmefisk'
@@ -36,6 +50,16 @@ socket.on('disconnect', function() {
   console.log('Disconnected from server');
 });
 
+// user list listener
+socket.on('updateUserList', function (users){
+  var ol = jQuery('<ol></ol>');
+
+  users.forEach(function (user){
+    ol.append(jQuery('<li></li>').text(user));
+  });
+
+  jQuery('#users').html(ol);
+});
 
 socket.on('newMessage', function (message){
   var formattedTime = moment(message.createdAt).format('HH:mm');
